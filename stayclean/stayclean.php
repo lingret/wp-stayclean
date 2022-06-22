@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Plugin Name: Stayclean
+ * Plugin Name: WP Stayclean
  * Plugin URI:  http://github.com/zares/wp-stayclean
- * Description: Wordpress Frontend Cleaner
+ * Description: Frontend Cleanup Wordpress Plugin
  * Version:     1.0
  * Author:      S.Zares
  * Author URI:  http://github.com/zares
@@ -30,6 +30,9 @@ add_action('init', function () {
 
     add_filter('the_generator', function () { return ''; });
 
+    // remove the DNS prefetch
+    add_filter('emoji_svg_url', '__return_false');
+
     // Remove Emojis actions
     remove_action('admin_print_scripts', 'print_emoji_detection_script');
     remove_action('wp_head', 'print_emoji_detection_script', 7);
@@ -39,8 +42,6 @@ add_action('init', function () {
     remove_filter('comment_text_rss', 'wp_staticize_emoji');
     remove_action('wp_print_styles', 'print_emoji_styles');
 
-    add_filter('wp_resource_hints', 'stayclean_remove_emojis_prefetch', 10, 2);
-    add_filter('tiny_mce_plugins', 'stayclean_disable_emojis_tinymce');
     add_filter('emoji_svg_url', '__return_false');
 
     // Remove REST API actions
@@ -52,24 +53,6 @@ add_action('init', function () {
         remove_action('rest_api_init', 'wp_oembed_register_route');
     }
 });
-
-// Filter for disabling tinymce in emojis
-function stayclean_disable_emojis_tinymce($plugins) {
-    if (is_array($plugins)) {
-        return array_diff($plugins, ['wpemoji']);
-    } else {
-        return [];
-    }
-}
-
-// Filter for removing the emojis dns prefetch
-function stayclean_remove_emojis_prefetch($urls, $relation_type) {
-    if ('dns-prefetch' == $relation_type) {
-        $emoji_svg_url = apply_filters('emoji_svg_url', 'https://s.w.org/images/core/emoji/2/svg/');
-        $urls = array_diff($urls, array($emoji_svg_url));
-    }
-    return $urls;
-}
 
 // Disable self pingbacks
 add_action('pre_ping', 'stayclean_disable_self_pingbacks');
