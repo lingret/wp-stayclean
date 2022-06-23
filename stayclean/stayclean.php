@@ -70,16 +70,14 @@ add_action('after_setup_theme', function () {
 /**
  * Disable self pingbacks
  */
-add_action('pre_ping', 'stayclean_disable_self_pingbacks');
-
-function stayclean_disable_self_pingbacks(&$links) {
+add_action('pre_ping', function (&$links) {
      $home = get_option('home');
      foreach ($links as $key => $value) {
          if (strpos($value, $home) === 0) {
              unset($links[$key]);
          }
      }
- }
+});
 
 /**
  * Disable XML-RPC
@@ -144,13 +142,12 @@ function stayclean_disable_embeds_rewrites($rules) {
 /**
  * Remove jQuery Migrate
  */
-add_filter('wp_default_scripts', 'stayclean_remove_jquery_migrate');
-function stayclean_remove_jquery_migrate(&$scripts) {
-    if(! is_admin()) {
+add_filter('wp_default_scripts', function (&$scripts) {
+    if (! is_admin()) {
         $scripts->remove('jquery');
         $scripts->add('jquery', false, ['jquery-core'], '1.12.4');
     }
-}
+});
 
 /**
  * Reduce the information output in case of an unsuccessful login
@@ -158,6 +155,3 @@ function stayclean_remove_jquery_migrate(&$scripts) {
 add_filter('login_errors', function () {
     return "<strong>ERROR</strong>: Wrong inputs data!";
 });
-
-
-
