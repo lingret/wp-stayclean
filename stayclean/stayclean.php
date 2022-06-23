@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WP Stayclean
  * Plugin URI:  http://github.com/zares/wp-stayclean
- * Description: Frontend Cleanup Wordpress Plugin
+ * Description: General Cleanup Wordpress Plugin
  * Version:     1.0
  * Author:      S.Zares
  * Author URI:  http://github.com/zares
@@ -30,7 +30,10 @@ add_action('init', function () {
 
     add_filter('the_generator', function () { return ''; });
 
-    // remove the DNS prefetch
+    // Remove Shortlink
+    remove_action('template_redirect', 'wp_shortlink_header', 10, 0);
+
+    // Remove the DNS prefetch
     add_filter('emoji_svg_url', '__return_false');
 
     // Remove Emojis actions
@@ -45,7 +48,7 @@ add_action('init', function () {
     add_filter('emoji_svg_url', '__return_false');
 
     // Remove REST API actions
-    remove_action('template_redirect', 'rest_output_link_header', 11, 0);
+    remove_action('template_redirect', 'rest_output_link_header', 10, 0);
     remove_action('wp_head', 'rest_output_link_wp_head', 10);
 
     // Remove the REST API endpoint
@@ -54,7 +57,19 @@ add_action('init', function () {
     }
 });
 
-// Disable self pingbacks
+/**
+ * Remove Global Styles
+ */
+add_action('after_setup_theme', function () {
+    remove_action('wp_enqueue_scripts', 'wp_enqueue_global_styles');
+    remove_action('wp_footer', 'wp_enqueue_global_styles', 1);
+    remove_action('wp_body_open', 'wp_global_styles_render_svg_filters');
+    remove_action('in_admin_header', 'wp_global_styles_render_svg_filters');
+});
+
+/**
+ * Disable self pingbacks
+ */
 add_action('pre_ping', 'stayclean_disable_self_pingbacks');
 
 function stayclean_disable_self_pingbacks(&$links) {
@@ -114,7 +129,7 @@ function stayclean_disable_embeds_code_init() {
 }
 
 function stayclean_disable_embeds_tiny_mce_plugin($plugins) {
-    return array_diff($plugins, array('wpembed'));
+    return array_diff($plugins, ['wpembed']);
 }
 
 function stayclean_disable_embeds_rewrites($rules) {
@@ -127,10 +142,22 @@ function stayclean_disable_embeds_rewrites($rules) {
 }
 
 /**
+ * Remove jQuery Migrate
+ */
+add_filter('wp_default_scripts', 'stayclean_remove_jquery_migrate');
+function stayclean_remove_jquery_migrate(&$scripts) {
+    if(! is_admin()) {
+        $scripts->remove('jquery');
+        $scripts->add('jquery', false, ['jquery-core'], '1.12.4');
+    }
+}
+
+/**
  * Reduce the information output in case of an unsuccessful login
  */
 add_filter('login_errors', function () {
     return "<strong>ERROR</strong>: Wrong inputs data!";
 });
+
 
 
