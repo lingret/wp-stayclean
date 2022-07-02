@@ -95,6 +95,16 @@ function dequeue_styles() {
 }*/
 
 /**
+ * Remove version query string from all styles & scripts
+ */
+add_filter('style_loader_src', 'removeVersionQueryVar', 15, 1);
+add_filter('script_loader_src', 'removeVersionQueryVar', 16, 1);
+
+function removeVersionQueryVar($url) {
+    return $url ? esc_url(remove_query_arg('ver', $url)) : false;
+}
+
+/**
  * Disable self pingbacks
  */
 add_action('pre_ping', function (&$links) {
