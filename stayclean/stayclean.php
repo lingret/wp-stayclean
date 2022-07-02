@@ -17,7 +17,7 @@ if (! defined('ABSPATH')) exit;
  * The basic cleanup
  */
 add_action('init', function () {
-
+       
     // Remove WP Head actions
     remove_action('wp_head', 'adjacent_posts_rel_link_wp_head', 10, 0);
     remove_action('wp_head', 'wp_shortlink_wp_head', 10, 0);
@@ -46,15 +46,25 @@ add_action('init', function () {
     remove_action('wp_print_styles', 'print_emoji_styles');
 
     add_filter('emoji_svg_url', '__return_false');
+});
 
-    // Remove REST API actions
-    remove_action('template_redirect', 'rest_output_link_header', 10, 0);
-    remove_action('wp_head', 'rest_output_link_wp_head', 10);
-
-    // Remove the REST API endpoint
-    if (! is_user_logged_in()) {
-        remove_action('rest_api_init', 'wp_oembed_register_route');
+/**
+ * Remove jQuery Migrate
+ */
+add_filter('wp_default_scripts', function (&$scripts) {
+    if (! is_admin()) {
+        $scripts->remove('jquery');
+        $scripts->add('jquery', false, ['jquery-core'], '1.12.4');
     }
+});
+
+/**
+ * Moves all scripts to wp_footer action
+ */
+add_action('wp_enqueue_scripts', function () {
+    remove_action('wp_head', 'wp_print_scripts');
+    remove_action('wp_head', 'wp_print_head_scripts', 9);
+    remove_action('wp_head', 'wp_enqueue_scripts', 1);
 });
 
 /**
@@ -66,6 +76,23 @@ add_action('after_setup_theme', function () {
     remove_action('wp_body_open', 'wp_global_styles_render_svg_filters');
     remove_action('in_admin_header', 'wp_global_styles_render_svg_filters');
 });
+
+/**
+ * Remove wp-core styles
+ */
+/*add_action('wp_print_styles', 'dequeue_styles', PHP_INT_MAX - 1);
+
+function dequeue_styles() {
+	global $wp_styles;
+	$styles = [
+		'wp-block-library',
+	];
+    foreach ($wp_styles->queue as $style) {
+		if (in_array($style, $styles)) {
+			wp_dequeue_style($style);
+        }
+    }
+}*/
 
 /**
  * Disable self pingbacks
@@ -138,16 +165,6 @@ function stayclean_disable_embeds_rewrites($rules) {
     }
     return $rules;
 }
-
-/**
- * Remove jQuery Migrate
- */
-add_filter('wp_default_scripts', function (&$scripts) {
-    if (! is_admin()) {
-        $scripts->remove('jquery');
-        $scripts->add('jquery', false, ['jquery-core'], '1.12.4');
-    }
-});
 
 /**
  * Reduce the information output in case of an unsuccessful login
